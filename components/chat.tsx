@@ -21,7 +21,7 @@ import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import { useChatVisibility } from "@/hooks/use-chat-visibility";
 import type { Vote } from "@/lib/db/schema";
-import { ChatSDKError } from "@/lib/errors";
+import { ChatbotError } from "@/lib/errors";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
 import { Artifact } from "./artifact";
@@ -138,17 +138,18 @@ export function Chat({
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     onError: (error) => {
-      if (error instanceof ChatSDKError) {
-        if (
-          error.message?.includes("AI Gateway requires a valid credit card")
-        ) {
-          setShowCreditCardAlert(true);
-        } else {
-          toast({
-            type: "error",
-            description: error.message,
-          });
-        }
+      if (error.message?.includes("AI Gateway requires a valid credit card")) {
+        setShowCreditCardAlert(true);
+      } else if (error instanceof ChatbotError) {
+        toast({
+          type: "error",
+          description: error.message,
+        });
+      } else {
+        toast({
+          type: "error",
+          description: error.message || "Oops, an error occurred!",
+        });
       }
     },
   });
